@@ -48,29 +48,29 @@ pub fn val_tofloat(element: &Map<String, Value>, key: &str, default: f64) -> f64
 
 
 pub fn from_hashmap<T: Clone>(mapin: HashMap<String, T>) -> Map<String, Value> where serde_json::Value: std::convert::From<T> {
-    let mut mapout: Map<String, Value> = Map::new();
-    mapout.extend(mapin.iter().map(|(_n, _v)| (_n.clone(), Value::from(_v.clone()))));
-    mapout
+    let mut _out: Map<String, Value> = Map::new();
+    _out.extend(mapin.iter().map(|(_n, _v)| (_n.clone(), Value::from(_v.clone()))));
+    _out
 }
 
 
 pub fn map_copy_exceptkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map<String, Value> {        
-    let mut mapout: Map<String, Value> = Map::new();
+    let mut _out: Map<String, Value> = Map::new();
     for (key, value) in element {
         if !keys.contains(&key.as_str()) {
-            mapout.insert(key.to_string(), value.clone());
+            _out.insert(key.to_string(), value.clone());
         }
     }
-    mapout
+    _out
 }
 
 
 pub fn map_copy_withkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map<String, Value> {
-    let mut mapout: Map<String, Value> = Map::new();
+    let mut _out: Map<String, Value> = Map::new();
     for (key, value) in element {
         if keys.contains(&key.as_str()) {
-            mapout.insert(key.to_string(), value.clone());
+            _out.insert(key.to_string(), value.clone());
         }
     }
-    mapout
+    _out
 }
