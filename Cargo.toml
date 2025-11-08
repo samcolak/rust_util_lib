@@ -25,3 +25,8 @@ maxminddb = "0.17"
 serde_json = "1.0"
 log = "~0.4.5"
 md5 = "0.7.0"
+regex = "*"
+substring = "*"
+warp = {version="*", features = ["tls", "compression"]}
+flate2 = "*"
+brotli = "*"
