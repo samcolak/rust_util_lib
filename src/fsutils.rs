@@ -1,8 +1,5 @@
 
-
 use std::{fs, path::Path};
-
-
 
 pub fn enumerate_directory(
     
@@ -12,37 +9,37 @@ pub fn enumerate_directory(
 
 ) -> Vec<String> {
 
-    let mut vec_out: Vec<String> = Vec::new();
+    let mut _out: Vec<String> = Vec::new();
 
-    let actualpath = match relative.is_empty() {
+    let _actualpath = match relative.is_empty() {
         true => path.to_string(),
         false => format!("{path}/{relative}")
     };
 
-    if Path::new(&actualpath).exists()
+    if Path::new(&_actualpath).exists()
 
-        && let Ok(t) = fs::read_dir(&actualpath) {
+        && let Ok(t) = fs::read_dir(&_actualpath) {
 
-            for p in t.flatten() {
+            for _p in t.flatten() {
 
-                let filename: String = p.file_name().to_str().unwrap().to_string();
+                let _filename = _p.file_name().to_str().unwrap().to_string();
 
                 if recurse {
                 
-                    let qualified: String = format!("{relative}/{filename}");
-                    vec_out.push(qualified.clone());                                    
+                    let _qualified = format!("{relative}/{_filename}");
+                    _out.push(_qualified.clone());                                    
 
-                    if p.path().is_dir() {
+                    if _p.path().is_dir() {
                         // its a directory !!
-                        let subdirectory_files = enumerate_directory(path, &qualified, true);
-                        if !subdirectory_files.is_empty() {
-                            vec_out.extend(subdirectory_files);
+                        let _subdirectory_files = enumerate_directory(path, &_qualified, true);
+                        if !_subdirectory_files.is_empty() {
+                            _out.extend(_subdirectory_files);
                         }
                     }
 
                 } else {
 
-                    vec_out.push(filename.clone());
+                    _out.push(_filename.clone());
 
                 }
 
@@ -50,7 +47,7 @@ pub fn enumerate_directory(
 
         };
 
-    vec_out.sort();
-    vec_out
+    _out.sort();
+    _out
 
 }

@@ -4,6 +4,28 @@ version = "0.1.0"
 edition = "2024"
 authors = ["Sam Colak <sam@samcolak.com>"]
 
+[profile.dev]
+opt-level = 0
+debug = true
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+
+
+[profile.release]
+opt-level = 3
+debug = false
+split-debuginfo = '...'  # Platform-specific.
+strip = "none"
+debug-assertions = false
+overflow-checks = false
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 16
+
+
 [target.'cfg(not(windows))'.dependencies]
 rustix = { version = "0.38.34", default-features = false, features = [
     "system",
