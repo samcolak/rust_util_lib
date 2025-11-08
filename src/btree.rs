@@ -52,6 +52,57 @@ impl <T: Clone + Debug> Btree<T> {
     }
 
 
+    pub fn replace(&mut self, mut path: &str, vals: &Vec<T>) -> bool {
+
+        // strip any preceding delimiter from the path JIC
+        if path.starts_with(&self.delim) {
+            path = path.trim_start_matches(&self.delim);
+        }        
+
+        if path.is_empty() {
+            
+            self.var = vals.clone();
+            true
+
+        } else {
+
+            let _pieces = path.split(&self.delim).collect::<Vec<&str>>();
+            
+            match _pieces.len() {
+
+                0 => false,
+
+                _n => { // start the moving around...
+                    
+                    let _newpath = _pieces[1..].join(&self.delim);
+                    let _subpath = _pieces[0].to_string();
+
+                    let mut _tree = match self.parts.get(&_subpath) {
+                        Some(_t) => _t.to_owned(),
+                        _ => { 
+                            Btree::<T> { 
+                                delim: self.delim.clone(), 
+                                head: _pieces[0].to_string(), 
+                                var: vals.clone(), 
+                                parts: HashMap::new() 
+                            } 
+                        }
+                    };
+
+                    let _success = _tree.replace(&_newpath, vals);
+                    self.parts.insert(_subpath, _tree);
+
+                    _success
+
+                }
+
+            }
+
+        }
+
+    }
+
+
     pub fn insert(&mut self, mut path: &str, val: T) -> bool {
 
         // strip any preceding delimiter from the path JIC
