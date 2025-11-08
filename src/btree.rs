@@ -72,7 +72,7 @@ impl <T: Clone + Debug> Btree<T> {
 
                 0 => false,
 
-                n => { // start the moving around...
+                _n => { // start the moving around...
                     
                     let _newpath = _pieces[1..].join(&self.delim);
                     let _subpath = _pieces[0].to_string();
@@ -139,7 +139,7 @@ impl <T: Clone + Debug> Btree<T> {
                         false
                     }
                 },
-                n => {
+                _n => {
 
                     let _newpath = _pieces[1..].join(&self.delim);
                     let _subpath = _pieces[0].to_string();                    
@@ -177,7 +177,7 @@ impl <T: Clone + Debug> Btree<T> {
 
                 0 => Some(self.clone()),
 
-                n => {
+                _n => {
 
                     let _newpath = _pieces[1..].join(&self.delim);
                     let _subpath = _pieces[0].to_string();                    
@@ -227,7 +227,7 @@ impl <T: Clone + Debug> Btree<T> {
                     }
                 },
 
-                n => {
+                _n => {
 
                     let _newpath = _pieces[1..].join(&self.delim);
                     let _subpath = _pieces[0].to_string();                    
