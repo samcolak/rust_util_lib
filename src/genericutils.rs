@@ -1,10 +1,6 @@
 
 use std::collections::HashMap;
-use std::convert::Infallible;
-use std::sync::Arc;
 use std::time::{SystemTime};
-use std::{env, fs, fs::File, io::Read, path::Path, process};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
@@ -14,8 +10,6 @@ use totp_rs::{Algorithm, TOTP};
 use rand::{distributions::Alphanumeric, Rng};
 
 use uuid::Uuid;
-
-use maxminddb::geoip2;
 
 use serde_json::{Value, Map};
 
