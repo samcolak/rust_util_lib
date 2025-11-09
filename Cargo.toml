@@ -50,5 +50,5 @@ md5 = "0.7.0"
 regex = "*"
 substring = "*"
 warp = {version="*", features = ["tls", "compression"]}
-flate2 = "*"
+flate2 = { version = "*", features = ["tokio"] }
 brotli = "*"
