@@ -15,11 +15,11 @@ macro_rules! map_add {
 
 
 pub fn val_tostr(element: &Map<String, Value>, key: &str, default: &str) -> String {
-    if let Some(k) = element.get(key) {
-        if *k == Value::Null {
+    if let Some(_k) = element.get(key) {
+        if *_k == Value::Null {
             default.to_string()
         } else {
-            k.as_str().expect("").to_string()
+            _k.as_str().expect("").to_string()
         }
     } else {
         default.to_string()
@@ -56,9 +56,9 @@ pub fn from_hashmap<T: Clone>(mapin: HashMap<String, T>) -> Map<String, Value> w
 
 pub fn map_copy_exceptkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map<String, Value> {        
     let mut _out = Map::new();
-    for (key, value) in element {
-        if !keys.contains(&key.as_str()) {
-            _out.insert(key.to_string(), value.clone());
+    for (_key, _value) in element {
+        if !keys.contains(&_key.as_str()) {
+            _out.insert(_key.to_string(), _value.clone());
         }
     }
     _out
@@ -67,9 +67,9 @@ pub fn map_copy_exceptkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map
 
 pub fn map_copy_withkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map<String, Value> {
     let mut _out = Map::new();
-    for (key, value) in element {
-        if keys.contains(&key.as_str()) {
-            _out.insert(key.to_string(), value.clone());
+    for (_key, _value) in element {
+        if keys.contains(&_key.as_str()) {
+            _out.insert(_key.to_string(), _value.clone());
         }
     }
     _out

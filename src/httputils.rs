@@ -102,15 +102,15 @@ pub fn headermap_tohashmap(
 
 ) -> HashMap<String, String> {
 
-    let mut mapout: HashMap<String, String> = HashMap::new();
+    let mut _out = HashMap::new();
 
     for (key, value) in mapin {
         if *key != "cookie" { // filter cookies..
-            mapout.insert(key.to_string(), value.to_str().unwrap().to_string());
+            _out.insert(key.to_string(), value.to_str().unwrap().to_string());
         }
     }
     
-    mapout
+    _out
 
 }
 
@@ -119,15 +119,15 @@ pub fn is_ajax(
     headers: &HeaderMap
 ) -> bool {
     
-    let mut ajax: bool = false;
+    let mut _ajax = false;
     
     if headers.contains_key("http_x_requested_with") {
-        ajax = headers["http_x_requested_with"] == "XMLHttpRequest";
+        _ajax = headers["http_x_requested_with"] == "XMLHttpRequest";
     } else if headers.contains_key("x-requested-with") {
-        ajax = headers["x-requested-with"] == "XMLHttpRequest";
+        _ajax = headers["x-requested-with"] == "XMLHttpRequest";
     }
 
-    ajax
+    _ajax
 
 }
 
@@ -138,8 +138,8 @@ pub fn get_language(
 
 ) -> String {
 
-    let mut language_selected: String = "en".to_string();
-    let mut language_preferences: Vec<String> = Vec::new();
+    let mut _selected: String = "en".to_string();
+    let mut _preferences: Vec<String> = Vec::new();
 
     if !codesin.is_empty() {
 
@@ -149,19 +149,19 @@ pub fn get_language(
         if !langs_found.is_empty() {
             for langraw in langs_found {
                 let lang_to_add = langraw.to_lowercase().to_string();
-                if !language_preferences.contains(&lang_to_add) {
-                    language_preferences.push(lang_to_add);
+                if !_preferences.contains(&lang_to_add) {
+                    _preferences.push(lang_to_add);
                 }
             }
         }
 
-        if !language_preferences.is_empty() {
-            language_selected = language_preferences[0].clone();
+        if !_preferences.is_empty() {
+            _selected = _preferences[0].clone();
         }
 
     }
 
-    language_selected
+    _selected
 
 }
 
@@ -348,29 +348,28 @@ impl WebRepeaterDef {
 
 pub fn cleanup_html(stringin: &str) -> String {
     
-    let mut texttoclean = stringin.to_string()
+    let mut _toclean = stringin.to_string()
         .replace("<br>", "")
         .replace("<p>", "")
         .replace("</p>", "");
 
-    let tags = ["a", "img", "ul", "iframe", "br"].to_vec();
+    let _tags = ["a", "img", "ul", "iframe", "br"].to_vec();
 
-    for tag in tags {
+    for _tag in _tags {
 
-        let sych = format!(r"(?:<({tag})*?>.+?<\/({tag})>|<({tag}).+?>.+?<\/({tag})>|<(?:!|\/?\*).*?\/?>)|<({tag})><\/({tag})>/gm");
-        let regx = Regex::new(&sych).unwrap();
-        let copy = texttoclean.clone();
+        let _synch = format!(r"(?:<({_tag})*?>.+?<\/({_tag})>|<({_tag}).+?>.+?<\/({_tag})>|<(?:!|\/?\*).*?\/?>)|<({_tag})><\/({_tag})>/gm");
+        let _regx = Regex::new(&_synch).unwrap();
+        let _copy = _toclean.clone();
 
-        let partsfound: Vec<_> = regx.find_iter(&copy).map(|mat| mat.as_str()).collect();
+        let _partsfound: Vec<_> = _regx.find_iter(&_copy).map(|mat| mat.as_str()).collect();
 
-        for part in partsfound {
-            texttoclean = texttoclean.replace(part, "");
+        for _part in _partsfound {
+            _toclean = _toclean.replace(_part, "");
         }      
 
     }
     
-
-    texttoclean
+    _toclean
 
 }
 
@@ -428,24 +427,24 @@ impl HttpEncoding {
         match self {
 
             Self::Gzip => {
-                let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-                encoder.write_all(body).unwrap();
-                encoder.finish().unwrap()
+                let mut _encoder = GzEncoder::new(Vec::new(), Compression::default());
+                _encoder.write_all(body).unwrap();
+                _encoder.finish().unwrap()
             },
 
             Self::Deflate => {
-                let mut encoder = flate2::write::DeflateEncoder::new(Vec::new(), Compression::default());
-                encoder.write_all(body).unwrap();
-                encoder.finish().unwrap()
+                let mut _encoder = flate2::write::DeflateEncoder::new(Vec::new(), Compression::default());
+                _encoder.write_all(body).unwrap();
+                _encoder.finish().unwrap()
             },
 
             Self::Brotli => {
-                let mut output = Vec::new();
+                let mut _output = Vec::new();
                 {
-                    let mut writer = CompressorWriter::new(&mut output, 4096, 11, 22);
-                    writer.write_all(body).unwrap();
+                    let mut _writer = CompressorWriter::new(&mut _output, 4096, 11, 22);
+                    _writer.write_all(body).unwrap();
                 }
-                output.to_vec()
+                _output.to_vec()
             }
 
             _ => body.to_vec()
@@ -462,32 +461,32 @@ pub fn determine_encoding(header: Option<String>) -> HttpEncoding {
     match header {
 
         Some(value) => {
-            let mut encodings: Vec<(String, f32)> = value
+            let mut _encodings: Vec<(String, f32)> = value
                 .split(',')
-                .filter_map(|enc| {
-                    let mut parts = enc.trim().split(';');
-                    let encoding = parts.next()?.trim().to_ascii_lowercase();
-                    let q = parts
-                        .find_map(|part| {
-                            if part.trim().starts_with("q=") {
-                                part.trim()[2..].parse::<f32>().ok()
+                .filter_map(|_enc| {
+                    let mut _parts = _enc.trim().split(';');
+                    let _encoding = _parts.next()?.trim().to_ascii_lowercase();
+                    let _q = _parts
+                        .find_map(|_part| {
+                            if _part.trim().starts_with("q=") {
+                                _part.trim()[2..].parse::<f32>().ok()
                             } else {
                                 None
                             }
                         })
                         .unwrap_or(1.0);
-                    Some((encoding, q))
+                    Some((_encoding, _q))
                 })
-                .filter(|(_, q)| *q > 0.0)
+                .filter(|(_, _q)| *_q > 0.0)
                 .collect();
 
             // Sort by quality descending
-            encodings.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+            _encodings.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
 
             // Return the first matching supported encoding
-            for (encoding, _) in encodings {
-                if SUPPORTED_ENCODINGS.contains(&encoding.as_str()) {
-                    return encoding.as_str().into();
+            for (_encoding, _) in _encodings {
+                if SUPPORTED_ENCODINGS.contains(&_encoding.as_str()) {
+                    return _encoding.as_str().into();
                 }
             }
 

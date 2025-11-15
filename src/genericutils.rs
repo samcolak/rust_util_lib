@@ -4,7 +4,7 @@ use std::time::{SystemTime};
 
 use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime};
 use totp_rs::{Algorithm, TOTP};
 
 use rand::{distributions::Alphanumeric, Rng};
@@ -126,13 +126,9 @@ pub fn epoch() -> i64 {
     }
 }
 
-pub fn epoch_to_utcdate(epochin: i64, format: &str) -> String {
-    
-    let datetime: DateTime<Utc> = DateTime::from_timestamp(epochin, 0).unwrap();
-    let datemodified_raw = datetime.format(format);                        
-    
-    datemodified_raw.to_string()
-
+pub fn epoch_to_utcdate(epochin: i64, format: &str) -> String {    
+    let _datetime= DateTime::from_timestamp(epochin, 0).unwrap();
+    _datetime.format(format).to_string()
 }
 
 
@@ -156,8 +152,7 @@ pub fn hash(stringin: &str) -> String {
 
 pub fn md5(bytes : &[u8]) -> String {
     let _digest = md5::compute(bytes);
-    let _strout = format!("{:x}", _digest);
-    _strout
+    format!("{:x}", _digest)
 }
 
 
