@@ -61,7 +61,6 @@ pub fn b64_decode_withengine(stringin: &str, engine: general_purpose::GeneralPur
     match engine.decode(stringin) {
         Ok(_c) => _c,
         Err(_e) => {
-            log::error!("Failed to decode base64");
             Vec::new()
         }
     }
@@ -69,7 +68,17 @@ pub fn b64_decode_withengine(stringin: &str, engine: general_purpose::GeneralPur
 
 
 pub fn b64_decode(stringin: &str) -> Vec<u8> {
-    b64_decode_withengine(stringin, general_purpose::STANDARD_NO_PAD)
+    let mut _result = b64_decode_withengine(stringin, general_purpose::STANDARD);
+    if _result.is_empty() {
+        _result = b64_decode_withengine(stringin, general_purpose::STANDARD_NO_PAD);
+        if _result.is_empty() {
+            _result = b64_decode_withengine(stringin, general_purpose::URL_SAFE);
+            if _result.is_empty() {
+                _result = b64_decode_withengine(stringin, general_purpose::URL_SAFE_NO_PAD);
+            }
+        }    
+    }
+    _result
 }
 
 
@@ -102,7 +111,9 @@ pub fn get_topt_token(secret: &str, epoch: i64) -> String {
         6, // a string of 6 chars...
         1,
         30, // period (30 seconds)
-        secret.to_string().as_bytes().to_vec()
+        secret.to_string().as_bytes().to_vec(),
+        None,
+        "".to_string()
     ).unwrap();
 
     totp.generate(epoch.try_into().unwrap())

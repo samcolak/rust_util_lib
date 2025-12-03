@@ -42,7 +42,7 @@ chrono = "*"
 base64 = "0.22.1"
 uuid = { version = "1.1.2", features = ["serde", "v4", "v7", "fast-rng"] }
 serde = { version = "1.0", features = ["derive"] }
-totp-rs = "*"
+totp-rs = { version = "*", features = ["otpauth"] }
 maxminddb = "0.17"
 serde_json = "1.0"
 log = "~0.4.5"
