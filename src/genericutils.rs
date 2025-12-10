@@ -25,6 +25,16 @@ macro_rules! str {
 }
 
 
+#[macro_export]
+macro_rules! hash {
+    ($($arg:tt)*) => {
+        $crate::__export::must_use({
+            $crate::genericutils::hash(&$crate::__export::format_args!($($arg)*))
+        })
+    }
+}
+
+
 // base64 encoding...
 
 pub fn b64_encode_bytes(bytesin: &[u8]) -> String {
