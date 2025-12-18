@@ -28,9 +28,7 @@ macro_rules! str {
 #[macro_export]
 macro_rules! hash {
     ($($arg:tt)*) => {
-        $crate::__export::must_use({
-            $crate::genericutils::hash(&$crate::__export::format_args!($($arg)*))
-        })
+        $crate::genericutils::hash(format!($($arg)*).as_str())
     }
 }
 
@@ -194,6 +192,21 @@ mod test {
         let decoded = b64_decode_tostring(&encoded);
 
         assert_eq!(stringtotest, decoded);
+
+    }
+
+    #[test]
+    fn hashtest() {
+
+        let stringin = "sam.colak@im-at-home.com".to_string();
+
+        let hash_val1 = super::hash(&stringin);
+        let hash_val2 = hash!("{}", stringin);
+        let hash_val3 = hash!("{stringin}");
+
+        assert_eq!(hash_val1, "340307c1a92c8ee366fe4a3425b7bed6");
+        assert_eq!(hash_val2, "340307c1a92c8ee366fe4a3425b7bed6");
+        assert_eq!(hash_val3, "340307c1a92c8ee366fe4a3425b7bed6");
 
     }
 
