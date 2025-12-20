@@ -217,61 +217,53 @@ pub fn lookup_mime(extension: &str) -> &str {
 }
 
 
-#[derive(Debug, PartialEq)]
-#[repr(i8)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[repr(u8)]
 pub enum HttpMethod {
-    Undefined = -1,
-    Gateway = 0,
-	Get = 1,
-    Post = 2,
-	Put = 3,
-    Delete = 4,
-    User = 5,
-    Head = 6,
-    Sock = 7
+    Undefined = 0,
+    Gateway = 1,
+	Get = 2,
+    Post = 3,
+	Put = 4,
+    Delete = 5,
+    User = 6,
+    Head = 7,
+    Sock = 8
+}
+
+
+impl Into<u8> for HttpMethod {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+
+impl From<u8> for HttpMethod {
+    fn from(value: u8) -> Self {
+        match value {
+            1 => Self::Gateway,
+            2 => Self::Get,
+            3 => Self::Post,
+            4 => Self::Put,
+            5 => Self::Delete,
+            6 => Self::User,
+            7 => Self::Head,
+            8 => Self::Sock,
+            _ => Self::Undefined
+        }
+    }
 }
 
 
 impl EnumType for HttpMethod {
-    fn enums() -> Vec<&'static str> {
-        ["gateway", "get", "post", "put", "delete", "user", "head", "sock"].to_vec()
-    }
-}
 
-
-
-impl HttpMethod {
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            HttpMethod::Get => "GET",
-            HttpMethod::Gateway => "GATEWAY",
-            HttpMethod::Post => "POST",
-            HttpMethod::Put => "PUT",
-            HttpMethod::Delete => "DELETE",
-            HttpMethod::Head => "HEAD",
-            HttpMethod::User => "USER",
-            HttpMethod::Sock => "SOCK",
-            _ => ""
-        }
+    fn as_vec() -> Vec<&'static str> {
+        ["undefined", "gateway", "get", "post", "put", "delete", "user", "head", "sock"].to_vec()
     }
 
-    pub fn from_str(stringin: &str) -> HttpMethod {
-        match stringin.to_uppercase().as_str() {
-            "GET" => HttpMethod::Get,
-            "GATEWAY" => HttpMethod::Gateway,
-            "POST" => HttpMethod::Post,
-            "PUT" => HttpMethod::Put,
-            "HEAD" => HttpMethod::Head,
-            "DELETE" => HttpMethod::Delete,
-            "USER" => HttpMethod::User,
-            "SOCK" => HttpMethod::Sock,
-            _ => HttpMethod::Undefined
-        }
-    }
-
-    pub fn str_value(&self) -> String {
-        self.as_str().to_string()
+    fn default() -> Self {
+        Self::Undefined
     }
 
 }
@@ -375,7 +367,7 @@ pub fn cleanup_html(stringin: &str) -> String {
 
 
 
-#[derive(PartialEq, Debug, Serialize)]
+#[derive(PartialEq, Debug, Serialize, Eq, Clone, Copy)]
 #[repr(u8)]
 pub enum HttpEncoding {
     Brotli = 0,
@@ -385,13 +377,35 @@ pub enum HttpEncoding {
 }
 
 
+impl From<u8> for HttpEncoding {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => Self::Brotli,
+            1 => Self::Gzip,
+            2 => Self::Deflate,
+            _ => Self::Identity
+        }
+    }
+}
+
+impl Into<u8> for HttpEncoding {
+    fn into(self) -> u8 {
+        self as u8
+    }
+}
+
+
 const SUPPORTED_ENCODINGS: &[&str] = &["br", "gzip", "deflate", "identity"];
 
 
 impl EnumType for HttpEncoding {
     
-    fn enums() -> Vec<&'static str> {
+    fn as_vec() -> Vec<&'static str> {
         SUPPORTED_ENCODINGS.to_vec()
+    }
+
+    fn default() -> Self {
+        Self::Identity
     }
 
 }
@@ -412,15 +426,6 @@ impl From<&str> for HttpEncoding {
 
 
 impl HttpEncoding {
-
-    pub fn to_str(&self) -> &str {
-        match self {
-            Self::Brotli => "br",
-            Self::Deflate => "deflate",
-            Self::Gzip => "gzip",
-            _ => "identity" // default...
-        }
-    }
 
     pub fn compress(&self, body: &[u8]) -> Vec<u8> {
 

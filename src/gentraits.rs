@@ -24,6 +24,28 @@ pub trait Base64Transform <T: Serialize + Clone> {
 }
 
 
-pub trait EnumType {
-    fn enums() -> Vec<&'static str>;
+pub trait EnumType 
+where Self: Sized + Copy + 'static + Into<u8> + From<u8> {
+    
+    fn default() -> Self;
+
+    fn as_vec() -> Vec<&'static str>;
+
+    fn from_str(s: &str) -> Self {
+        if let Some(p) = Self::as_vec().iter().position(|n| *n == s) {
+            (p as u8).into()
+        } else {
+            Self::default()
+        }
+    }
+
+    fn to_str(&self) -> &str {
+        Self::as_vec()[usize::from((*self).into())]
+    }
+
+    fn str_value(self) -> String {
+        self.to_str().to_owned()
+    }
+
 }
+  
