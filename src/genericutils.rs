@@ -66,12 +66,7 @@ pub fn b64_decode_withconfig(stringin: &str, config: general_purpose::GeneralPur
 
 
 pub fn b64_decode_withengine(stringin: &str, engine: general_purpose::GeneralPurpose) -> Vec<u8> {
-    match engine.decode(stringin) {
-        Ok(_c) => _c,
-        Err(_e) => {
-            Vec::new()
-        }
-    }
+    engine.decode(stringin).unwrap_or_default()
 }
 
 

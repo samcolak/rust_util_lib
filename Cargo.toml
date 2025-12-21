@@ -52,3 +52,15 @@ substring = "*"
 warp = {version="*", features = ["tls", "compression"]}
 flate2 = { version = "*", features = ["tokio"] }
 brotli = "*"
+
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(coverage,coverage_nightly)',
+] }
+
+[lints.clippy]
+option_if_let_else = "allow"
+needless_collect = "allow"
+from_over_into = "allow"
+useless_conversion = "allow"
