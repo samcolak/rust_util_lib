@@ -20,7 +20,7 @@ pub fn epoch() -> i64 {
 
 
 pub fn epoch_to_utcdate(epochin: i64, format: &str) -> String {    
-    let _datetime= DateTime::from_timestamp(epochin, 0).unwrap();
+    let _datetime = DateTime::from_timestamp(epochin, 0).unwrap();
     _datetime.format(format).to_string()
 }
 
@@ -30,6 +30,14 @@ pub fn epoch_real() -> f64 {
         Ok(_n) => _n.as_secs_f64(),
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     }
+}
+
+
+pub fn weeknum_to_epoch(weeknum: i64) -> i64 {
+    if weeknum <= 1 {
+        return 0;
+    }   
+    ((weeknum - 1) * 604800) - 345600
 }
 
 
