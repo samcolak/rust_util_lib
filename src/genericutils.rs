@@ -1,10 +1,8 @@
 
 use std::collections::HashMap;
-use std::time::{SystemTime};
 
 use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
-use chrono::{DateTime};
 use totp_rs::{Algorithm, TOTP};
 
 use rand::{distributions::Alphanumeric, Rng};
@@ -132,26 +130,6 @@ pub fn random_alpha(count: i64) -> String {
 
 
 // Standard utils we all know and love...
-
-pub fn epoch() -> i64 {
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(_n) => _n.as_secs().try_into().unwrap(),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-    }
-}
-
-pub fn epoch_to_utcdate(epochin: i64, format: &str) -> String {    
-    let _datetime= DateTime::from_timestamp(epochin, 0).unwrap();
-    _datetime.format(format).to_string()
-}
-
-
-pub fn epoch_real() -> f64 {
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(_n) => _n.as_secs_f64(),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
-    }
-}
 
 
 pub fn unique_id() -> String {    
