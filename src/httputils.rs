@@ -22,7 +22,7 @@ use crate::serdeutils::{fetch_string};
 
 // http return codes...
 
-#[derive(PartialEq, Debug, Serialize)]
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone, Copy)]
 #[repr(u16)]
 pub enum HttpResponseCodes {
 	Continue = 100,
