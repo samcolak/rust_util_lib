@@ -1,7 +1,5 @@
 
 use serde_json::Value;
-use substring::Substring;
-use regex::Regex;
 
 
 pub struct ParseValue<'a, T>(pub &'a Value, pub &'a str, pub T);
@@ -12,12 +10,12 @@ impl <'a> From<ParseValue<'a, u64>> for u64 {
         match src.0.get(src.1) {
             None => src.2,
             Some(e) => {
-                if e.is_u64() {            
-                    e.as_u64().unwrap()
+                if let Some(number) = e.as_u64() {
+                    number
                 } else {            
                     match e.as_str() {
                         Some(num) => match num.parse::<u64>() {
-                            Ok(num) => num,
+                            Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
                         _ => src.2,
@@ -36,12 +34,12 @@ impl <'a> From<ParseValue<'a, u32>> for u32 {
         match src.0.get(src.1) {
             None => src.2,
             Some(e) => {
-                if e.is_u64() {            
-                    e.as_u64().unwrap() as u32
+                if let Some(number) = e.as_u64() {
+                    number as u32
                 } else {            
                     match e.as_str() {
                         Some(num) => match num.parse::<u32>() {
-                            Ok(num) => num,
+                            Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
                         _ => src.2,
@@ -60,12 +58,12 @@ impl <'a> From<ParseValue<'a, i64>> for i64 {
         match src.0.get(src.1) {
             None => src.2,
             Some(e) => {
-                if e.is_i64() {            
-                    e.as_i64().unwrap()
+                if let Some(number) = e.as_i64() {
+                    number
                 } else {            
                     match e.as_str() {
                         Some(num) => match num.parse::<i64>() {
-                            Ok(num) => num,
+                            Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
                         _ => src.2,
@@ -84,12 +82,12 @@ impl <'a> From<ParseValue<'a, f64>> for f64 {
         match src.0.get(src.1) {
             None => src.2,
             Some(e) => {
-                if e.is_f64() {            
-                    e.as_f64().unwrap()
+                if let Some(number) = e.as_f64() {
+                    number
                 } else {            
                     match e.as_str() {
                         Some(num) => match num.parse::<f64>() {
-                            Ok(num) => num,
+                            Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
                         _ => src.2,
@@ -108,15 +106,14 @@ impl <'a> From<ParseValue<'a, bool>> for bool {
         match src.0.get(src.1) {
             None => src.2,
             Some(e) => {
-                if e.is_boolean() {
-                    e.as_bool().unwrap()              
+                if let Some(boolean) = e.as_bool() {
+                    boolean
                 } else if e.is_number() {                
-                    let numrep = e.as_number().unwrap();
-                    numrep.as_i64() == Some(1)
+                    e.as_i64() == Some(1)
                 } else {
                     match e.as_str() {
                         Some(num) => match num.parse::<bool>() {
-                            Ok(num) => num,
+                            Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
                         _ => src.2
@@ -126,6 +123,20 @@ impl <'a> From<ParseValue<'a, bool>> for bool {
         }
     }
 
+}
+
+
+fn parse_index_segment(segment: &str) -> Option<(&str, usize)> {
+    let open_index = segment.find('[')?;
+    let close_index = segment[open_index + 1..].find(']')? + open_index + 1;
+
+    if close_index <= open_index + 1 {
+        return None;
+    }
+
+    let index_text = &segment[open_index + 1..close_index];
+    let index = index_text.parse::<usize>().ok()?;
+    Some((&segment[..open_index], index))
 }
 
 
@@ -183,96 +194,60 @@ pub fn recurse_value(
     vars: &Value
 
 ) -> String {
+    let mut change = String::new();
 
-    let mut _change:String = "".to_string();
-    let _parts = path.split(".").collect::<Vec<&str>>();
-        
-    if !_parts.is_empty() {
+    let (vartolookup, newpath) = match path.split_once('.') {
+        Some((head, tail)) => (head, tail),
+        None => (path, ""),
+    };
 
-        let mut _vartolookup: String = _parts[0].to_string();
-        let mut _newpath: String = "".to_string();
-        
-        if _parts.len() > 1 {
-            _newpath = _parts[1..].join(".").to_string();
+    if !vartolookup.is_empty() {
+        if let Some(string_value) = vars.as_str() {
+            change = string_value.to_string();
+            return change;
         }
 
-        if !_vartolookup.is_empty() { // not empty...
-
-            if vars.is_string() {
-
-                _change = vars.as_str().expect("No String").to_string();
-            
-            } else if vars.is_array() || vars.is_object() {
-
-                let _parser = Regex::new(r"(\[)\d(\])?").unwrap();
-                let _pieces: Vec<_> = _parser.find_iter(&_vartolookup).collect();
-                let mut _index: usize = 0;
-
-                // we have an indexer...   
-                if !_pieces.is_empty() {
-
-                    let _piece = _pieces[0];
-                    let _varname = _vartolookup.substring(0, _piece.start());                    
-                    _index = _vartolookup.substring(_piece.start()+1, _piece.end()-1).parse::<i64>().unwrap().try_into().unwrap();    
-
-                    if _varname.is_empty() {
-                        
-                        let _vectorecurse = vars.as_array().into_iter().collect::<Vec<_>>();
-                        if _index < _vectorecurse.len() {
-                            let valuetorecurse = _vectorecurse[_index][0].clone();
-                            return recurse_value(&_newpath, &valuetorecurse);
+        if vars.is_array() || vars.is_object() {
+            if let Some((varname, index)) = parse_index_segment(vartolookup) {
+                if varname.is_empty() {
+                    if let Some(values) = vars.as_array() {
+                        if let Some(value_to_recurse) = values.get(index) {
+                            return recurse_value(newpath, value_to_recurse);
                         }
-                        return "Undefined".to_string();
-
-                    } else {
-
-                        let _objecttorecurse = vars.as_object().expect("No Object"); 
-                        if _objecttorecurse.contains_key(_varname) {
-                            let _vectorecurse = _objecttorecurse.get(_varname).expect("No item found").as_array().into_iter().collect::<Vec<_>>();
-                            if _index < _vectorecurse.len() {
-                                let _valuetorecurse = _vectorecurse[_index][0].clone();
-                                return recurse_value(&_newpath, &_valuetorecurse);
-                            }
-                        }
-                        return "Undefined".to_string();
-
                     }
-
-                } else {
-
-                    let objecttorecurse = vars.as_object().expect("No Object"); 
-
-                    if objecttorecurse.contains_key(&_vartolookup) {
-                        let valuetorecurse: Value = objecttorecurse.get(&_vartolookup).expect("No item found").clone();
-                        _change = recurse_value(&_newpath, &valuetorecurse)
-                    } else {
-                        _change = "".to_string();
-                    }
-
+                    return "Undefined".to_string();
                 }
 
+                if let Some(object_to_recurse) = vars.as_object() {
+                    if let Some(values) = object_to_recurse.get(varname).and_then(|v| v.as_array()) {
+                        if let Some(value_to_recurse) = values.get(index) {
+                            return recurse_value(newpath, value_to_recurse);
+                        }
+                    }
+                }
+                return "Undefined".to_string();
             }
 
-            return _change;
-            
+            if let Some(object_to_recurse) = vars.as_object() {
+                if let Some(value_to_recurse) = object_to_recurse.get(vartolookup) {
+                    change = recurse_value(newpath, value_to_recurse);
+                }
+                return change;
+            }
         }
-
     }
 
-    if _change.is_empty() {
-
-        if vars.is_null () {
-            // dont return a value - its null
-        } else if vars.is_string() {
-            _change = vars.as_str().expect("No String").to_string();
+    if change.is_empty() {
+        if vars.is_null() {
+        } else if let Some(string_value) = vars.as_str() {
+            change = string_value.to_string();
         } else {
-            _change = serde_json::to_string(&vars).expect("No variable found with this name");
+            change = serde_json::to_string(vars).expect("No variable found with this name");
         }
-
     }
 
-    log::debug!("Returning value {:?}", &_change);
+    log::debug!("Returning value {:?}", &change);
 
-    _change
+    change
 
 }

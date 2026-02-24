@@ -2,8 +2,7 @@
 use serde_json::{Map, Value};
 
 use std::collections::HashMap;
-
-use crate::serdeutils::ParseValue;
+use std::collections::HashSet;
 
 
 #[macro_export]
@@ -27,50 +26,114 @@ pub fn val_tostr(element: &Map<String, Value>, key: &str, default: &str) -> Stri
 } 
 
 pub fn val_tou64(element: &Map<String, Value>, key: &str, default: u64) -> u64 {
-    u64::from(ParseValue(&serde_json::Value::Object(element.clone()), key, default))
+    match element.get(key) {
+        None => default,
+        Some(value) => {
+            if let Some(number) = value.as_u64() {
+                number
+            } else {
+                match value.as_str() {
+                    Some(number) => number.parse::<u64>().unwrap_or(default),
+                    None => default,
+                }
+            }
+        }
+    }
 }
 
 pub fn val_toi64(element: &Map<String, Value>, key: &str, default: i64) -> i64 {
-    i64::from(ParseValue(&serde_json::Value::Object(element.clone()), key, default))
+    match element.get(key) {
+        None => default,
+        Some(value) => {
+            if let Some(number) = value.as_i64() {
+                number
+            } else {
+                match value.as_str() {
+                    Some(number) => number.parse::<i64>().unwrap_or(default),
+                    None => default,
+                }
+            }
+        }
+    }
 }
 
 pub fn val_tou32(element: &Map<String, Value>, key: &str, default: u32) -> u32 {    
-    u32::from(ParseValue(&serde_json::Value::Object(element.clone()), key, default))
+    match element.get(key) {
+        None => default,
+        Some(value) => {
+            if let Some(number) = value.as_u64() {
+                number as u32
+            } else {
+                match value.as_str() {
+                    Some(number) => number.parse::<u32>().unwrap_or(default),
+                    None => default,
+                }
+            }
+        }
+    }
 }
 
 pub fn val_tobool(element: &Map<String, Value>, key: &str, default: bool) -> bool {
-    bool::from(ParseValue(&serde_json::Value::Object(element.clone()), key, default))
+    match element.get(key) {
+        None => default,
+        Some(value) => {
+            if let Some(boolean) = value.as_bool() {
+                boolean
+            } else if value.is_number() {
+                value.as_i64() == Some(1)
+            } else {
+                match value.as_str() {
+                    Some(boolean) => boolean.parse::<bool>().unwrap_or(default),
+                    None => default,
+                }
+            }
+        }
+    }
 }
 
 pub fn val_tofloat(element: &Map<String, Value>, key: &str, default: f64) -> f64 {
-    f64::from(ParseValue(&serde_json::Value::Object(element.clone()), key, default))
+    match element.get(key) {
+        None => default,
+        Some(value) => {
+            if let Some(number) = value.as_f64() {
+                number
+            } else {
+                match value.as_str() {
+                    Some(number) => number.parse::<f64>().unwrap_or(default),
+                    None => default,
+                }
+            }
+        }
+    }
 }
 
 
 pub fn from_hashmap<T: Clone>(mapin: HashMap<String, T>) -> Map<String, Value> where serde_json::Value: std::convert::From<T> {
-    let mut _out = Map::new();
-    _out.extend(mapin.iter().map(|(_n, _v)| (_n.clone(), Value::from(_v.clone()))));
-    _out
+    let mut out = Map::with_capacity(mapin.len());
+    out.extend(mapin.into_iter().map(|(name, value)| (name, Value::from(value))));
+    out
 }
 
 
 pub fn map_copy_exceptkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map<String, Value> {        
-    let mut _out = Map::new();
-    for (_key, _value) in element {
-        if !keys.contains(&_key.as_str()) {
-            _out.insert(_key.to_string(), _value.clone());
+    let lookup: HashSet<&str> = keys.into_iter().collect();
+    let mut out = Map::with_capacity(element.len());
+    for (key, value) in element {
+        if !lookup.contains(key.as_str()) {
+            out.insert(key.clone(), value.clone());
         }
     }
-    _out
+    out
 }
 
 
 pub fn map_copy_withkeys(element: &Map<String, Value>, keys: Vec<&str>) -> Map<String, Value> {
-    let mut _out = Map::new();
-    for (_key, _value) in element {
-        if keys.contains(&_key.as_str()) {
-            _out.insert(_key.to_string(), _value.clone());
+    let lookup: HashSet<&str> = keys.into_iter().collect();
+    let mut out = Map::with_capacity(element.len());
+    for (key, value) in element {
+        if lookup.contains(key.as_str()) {
+            out.insert(key.clone(), value.clone());
         }
     }
-    _out
+    out
 }
