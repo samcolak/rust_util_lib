@@ -28,6 +28,32 @@ impl <T: Clone + Debug> Deref for Btree<T> {
 
 impl <T: Clone + Debug> Btree<T> {
 
+    fn normalize_path<'a>(path: &'a str, delim: &str) -> &'a str {
+        if path.starts_with(delim) {
+            path.trim_start_matches(delim)
+        } else {
+            path
+        }
+    }
+
+    fn split_path<'a>(path: &'a str, delim: &str) -> (&'a str, &'a str) {
+        if delim.is_empty() {
+            return (path, "");
+        }
+
+        match path.split_once(delim) {
+            Some((head, tail)) => (head, tail),
+            None => (path, ""),
+        }
+    }
+
+    fn collect_items(&self, out: &mut Vec<T>) {
+        out.extend(self.var.iter().cloned());
+        for part in self.parts.values() {
+            part.collect_items(out);
+        }
+    }
+
 
     pub fn new(delim: &str) -> Self {
         Self { delim: delim.to_string(), head: "".to_string(), var: Vec::new(), parts: HashMap::new() }
@@ -36,28 +62,15 @@ impl <T: Clone + Debug> Btree<T> {
 
     // recurse the binary tree enumerating all items..
     pub fn items(&self) -> Vec<T> {
-
-        let mut _out = Vec::new();
-
-        if !self.var.is_empty() {
-            _out.extend(self.var.clone());
-        }
-
-        for _part in self.parts.values() {
-            _out.extend(_part.items());
-        }
-
-        _out
+        let mut out = Vec::new();
+        self.collect_items(&mut out);
+        out
 
     }
 
 
     pub fn replace(&mut self, mut path: &str, vals: &Vec<T>) -> bool {
-
-        // strip any preceding delimiter from the path JIC
-        if path.starts_with(&self.delim) {
-            path = path.trim_start_matches(&self.delim);
-        }        
+        path = Self::normalize_path(path, &self.delim);
 
         if path.is_empty() {
             
@@ -65,37 +78,24 @@ impl <T: Clone + Debug> Btree<T> {
             true
 
         } else {
+            let (subpath, newpath) = Self::split_path(path, &self.delim);
+            if subpath.is_empty() {
+                return false;
+            }
 
-            let _pieces = path.split(&self.delim).collect::<Vec<&str>>();
-            
-            match _pieces.len() {
+            if let Some(tree) = self.parts.get_mut(subpath) {
+                tree.replace(newpath, vals)
+            } else {
+                let mut tree = Btree::<T> {
+                    delim: self.delim.clone(),
+                    head: subpath.to_string(),
+                    var: vals.clone(),
+                    parts: HashMap::new(),
+                };
 
-                0 => false,
-
-                _n => { // start the moving around...
-                    
-                    let _newpath = _pieces[1..].join(&self.delim);
-                    let _subpath = _pieces[0].to_string();
-
-                    let mut _tree = match self.parts.get(&_subpath) {
-                        Some(_t) => _t.to_owned(),
-                        _ => { 
-                            Btree::<T> { 
-                                delim: self.delim.clone(), 
-                                head: _pieces[0].to_string(), 
-                                var: vals.clone(), 
-                                parts: HashMap::new() 
-                            } 
-                        }
-                    };
-
-                    let _success = _tree.replace(&_newpath, vals);
-                    self.parts.insert(_subpath, _tree);
-
-                    _success
-
-                }
-
+                let success = tree.replace(newpath, vals);
+                self.parts.insert(subpath.to_string(), tree);
+                success
             }
 
         }
@@ -104,11 +104,7 @@ impl <T: Clone + Debug> Btree<T> {
 
 
     pub fn insert(&mut self, mut path: &str, val: T) -> bool {
-
-        // strip any preceding delimiter from the path JIC
-        if path.starts_with(&self.delim) {
-            path = path.trim_start_matches(&self.delim);
-        }        
+        path = Self::normalize_path(path, &self.delim);
 
         if path.is_empty() {
             
@@ -116,37 +112,24 @@ impl <T: Clone + Debug> Btree<T> {
             true
 
         } else {
+            let (subpath, newpath) = Self::split_path(path, &self.delim);
+            if subpath.is_empty() {
+                return false;
+            }
 
-            let _pieces = path.split(&self.delim).collect::<Vec<&str>>();
-            
-            match _pieces.len() {
+            if let Some(tree) = self.parts.get_mut(subpath) {
+                tree.insert(newpath, val)
+            } else {
+                let mut tree = Btree::<T> {
+                    delim: self.delim.clone(),
+                    head: subpath.to_string(),
+                    var: Vec::new(),
+                    parts: HashMap::new(),
+                };
 
-                0 => false,
-
-                _n => { // start the moving around...
-                    
-                    let _newpath = _pieces[1..].join(&self.delim);
-                    let _subpath = _pieces[0].to_string();
-
-                    let mut _tree = match self.parts.get(&_subpath) {
-                        Some(_t) => _t.to_owned(),
-                        _ => { 
-                            Btree::<T> { 
-                                delim: self.delim.clone(), 
-                                head: _pieces[0].to_string(), 
-                                var: Vec::new(), 
-                                parts: HashMap::new() 
-                            } 
-                        }
-                    };
-
-                    let _success = _tree.insert(&_newpath, val);
-                    self.parts.insert(_subpath, _tree);
-
-                    _success
-
-                }
-
+                let success = tree.insert(newpath, val);
+                self.parts.insert(subpath.to_string(), tree);
+                success
             }
 
         }
@@ -165,140 +148,65 @@ impl <T: Clone + Debug> Btree<T> {
 
 
     pub fn remove(&mut self, mut path: &str) -> bool {
-
-        // strip any preceding delimiter from the path JIC
-        if path.starts_with(&self.delim) {
-            path = path.trim_start_matches(&self.delim);
-        }
+        path = Self::normalize_path(path, &self.delim);
 
         if path.is_empty() {
             
             false
 
         } else {
-
-            let _pieces = path.split(&self.delim).collect::<Vec<&str>>();
-
-            match _pieces.len() {
-                0 => false,
-                1 => {
-                    let _subpath = _pieces[0].to_string();                    
-                    if self.parts.contains_key(&_subpath) {
-                        self.parts.remove(&_subpath);
-                        true
-                    } else {
-                        false
-                    }
-                },
-                _n => {
-
-                    let _newpath = _pieces[1..].join(&self.delim);
-                    let _subpath = _pieces[0].to_string();                    
-
-                    if let Some(mut _t) = self.parts.get(&_subpath).cloned() {                        
-                        let _success = _t.remove(&_newpath);
-                        self.parts.insert(_subpath, _t);
-                        _success
-                    } else {
-                        false // not found
-                    }
-                    
-                }
+            let (subpath, newpath) = Self::split_path(path, &self.delim);
+            if subpath.is_empty() {
+                return false;
             }
 
-        }
-
-    }
-
-
-    pub fn node_for(&self, mut path: &str) -> Option<Btree<T>> {
-
-        // strip any preceding delimiter from the path JIC
-        if path.starts_with(&self.delim) {
-            path = path.trim_start_matches(&self.delim);
-        }        
-
-        if path.is_empty() {
-            Some(self.clone())
-        } else {
-
-            let _pieces = path.split(&self.delim).collect::<Vec<&str>>();
-
-            match _pieces.len() {
-
-                0 => Some(self.clone()),
-
-                _n => {
-
-                    let _newpath = _pieces[1..].join(&self.delim);
-                    let _subpath = _pieces[0].to_string();                    
-
-                    match self.parts.get(&_subpath) {
-                        Some(_t) => {
-                            _t.node_for(&_newpath)
-                        }
-                        _ => None
-                    }
-
-                }
-
-            }
-
-        }
-
-    }
-
-
-    pub fn fetch(&self, mut path: &str) -> Vec<T> {
-
-        // strip any preceding delimiter from the path JIC
-        if path.starts_with(&self.delim) {
-            path = path.trim_start_matches(&self.delim);
-        }
-
-        if path.is_empty() {
-            
-            if self.var.is_empty() {
-                Vec::new()
+            if newpath.is_empty() {
+                self.parts.remove(subpath).is_some()
             } else {
-                self.var.clone()
-            }
-
-        } else {
-
-            let _pieces = path.split(&self.delim).collect::<Vec<&str>>();
-
-            match _pieces.len() {
-
-                0 => {
-                    if self.var.is_empty() {
-                        Vec::new()
-                    } else {
-                        self.var.clone()
-                    }
-                },
-
-                _n => {
-
-                    let _newpath = _pieces[1..].join(&self.delim);
-                    let _subpath = _pieces[0].to_string();                    
-
-                    match self.parts.get(&_subpath) {
-                        
-                        Some(_t) => {
-                            _t.fetch(&_newpath)
-                        },
-
-                        _ => Vec::new()
-
-                    }
-
+                match self.parts.get_mut(subpath) {
+                    Some(tree) => tree.remove(newpath),
+                    None => false,
                 }
-
             }
 
         }
 
+    }
+
+
+    pub fn node_for(&self, path: &str) -> Option<Btree<T>> {
+        self.node_for_ref(path).cloned()
+    }
+
+
+    pub fn node_for_ref(&self, mut path: &str) -> Option<&Btree<T>> {
+        path = Self::normalize_path(path, &self.delim);
+
+        if path.is_empty() {
+            Some(self)
+        } else {
+            let (subpath, newpath) = Self::split_path(path, &self.delim);
+            if subpath.is_empty() {
+                return Some(self);
+            }
+
+            match self.parts.get(subpath) {
+                Some(t) => t.node_for_ref(newpath),
+                None => None,
+            }
+
+        }
+
+    }
+
+
+    pub fn fetch(&self, path: &str) -> Vec<T> {
+        self.fetch_ref(path).map(|vals| vals.to_vec()).unwrap_or_default()
+    }
+
+
+    pub fn fetch_ref(&self, path: &str) -> Option<&[T]> {
+        self.node_for_ref(path).map(|node| node.var.as_slice())
     }
 
 }
@@ -326,12 +234,20 @@ mod test {
         println!("Tree = {_newtree:?}");
 
         let _find = _newtree.fetch("13/457/15");
+        let _find_ref = _newtree.fetch_ref("13/457/15");
 
         println!("Found = {_find:?}");
+        println!("Found Ref = {_find_ref:?}");
+
+        assert_eq!(_find_ref, Some(["19".to_string()].as_slice()));
 
         let _node = _newtree.node_for("13");
+        let _node_ref = _newtree.node_for_ref("13");
 
         println!("node = {_node:?}");
+        println!("node_ref = {_node_ref:?}");
+
+        assert!(_node_ref.is_some());
 
         if let Some(_n) = _node {
 

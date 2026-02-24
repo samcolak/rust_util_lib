@@ -53,6 +53,13 @@ warp = {version="*", features = ["tls", "compression"]}
 flate2 = { version = "*", features = ["tokio"] }
 brotli = "*"
 
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "btree_bench"
+harness = false
+
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
