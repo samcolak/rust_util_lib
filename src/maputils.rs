@@ -80,10 +80,10 @@ pub fn val_tobool(element: &Map<String, Value>, key: &str, default: bool) -> boo
             if let Some(boolean) = value.as_bool() {
                 boolean
             } else if value.is_number() {
-                value.as_i64() == Some(1)
+                value.as_u64() == Some(1)
             } else {
                 match value.as_str() {
-                    Some(boolean) => boolean.parse::<bool>().unwrap_or(default),
+                    Some(boolean) => boolean.parse::<u64>().unwrap_or(0) == 1,
                     None => default,
                 }
             }
