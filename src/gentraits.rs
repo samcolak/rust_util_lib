@@ -1,7 +1,22 @@
 
+use std::sync::LazyLock;
 
 use serde_json::{Value};
 use serde::{Serialize};
+
+
+#[macro_export]
+macro_rules! enum_values_lazy_slice {
+    ($enum_type:ident, [$($value:expr),* $(,)?]) => {
+        impl $enum_type {
+            #[inline]
+            pub fn as_slice() -> &'static [&'static str] {
+                static VALUES: LazyLock<Vec<&'static str>> = LazyLock::new(|| vec![$($value),*]);
+                VALUES.as_slice()
+            }
+        }
+    };
+}
 
 
 pub trait Jsonify <T: Serialize + Clone> {
