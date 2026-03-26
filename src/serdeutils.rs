@@ -202,51 +202,58 @@ pub fn recurse_value(
     };
 
     if !vartolookup.is_empty() {
+
         if let Some(string_value) = vars.as_str() {
             change = string_value.to_string();
             return change;
         }
 
         if vars.is_array() || vars.is_object() {
+
             if let Some((varname, index)) = parse_index_segment(vartolookup) {
+
                 if varname.is_empty() {
-                    if let Some(values) = vars.as_array() {
-                        if let Some(value_to_recurse) = values.get(index) {
+                    if let Some(values) = vars.as_array()
+                        && let Some(value_to_recurse) = values.get(index) {
                             return recurse_value(newpath, value_to_recurse);
                         }
-                    }
                     return "Undefined".to_string();
                 }
 
-                if let Some(object_to_recurse) = vars.as_object() {
-                    if let Some(values) = object_to_recurse.get(varname).and_then(|v| v.as_array()) {
-                        if let Some(value_to_recurse) = values.get(index) {
-                            return recurse_value(newpath, value_to_recurse);
-                        }
+                if let Some(object_to_recurse) = vars.as_object()
+                    && let Some(values) = object_to_recurse.get(varname).and_then(|v| v.as_array())
+                    && let Some(value_to_recurse) = values.get(index) {
+                        return recurse_value(newpath, value_to_recurse);
                     }
-                }
+
                 return "Undefined".to_string();
+
             }
 
             if let Some(object_to_recurse) = vars.as_object() {
+
                 if let Some(value_to_recurse) = object_to_recurse.get(vartolookup) {
                     change = recurse_value(newpath, value_to_recurse);
                 }
+                
                 return change;
+
             }
+
         }
+
     }
 
     if change.is_empty() {
+
         if vars.is_null() {
+            // Return empty string for null values
         } else if let Some(string_value) = vars.as_str() {
             change = string_value.to_string();
         } else {
             change = serde_json::to_string(vars).expect("No variable found with this name");
         }
     }
-
-    log::debug!("Returning value {:?}", &change);
 
     change
 

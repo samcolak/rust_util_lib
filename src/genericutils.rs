@@ -5,8 +5,7 @@ use base64::{Engine as _, engine::{self, general_purpose}, alphabet};
 
 use totp_rs::{Algorithm, TOTP};
 
-use rand::{distributions::Alphanumeric, Rng};
-
+use rand::distr::{Alphanumeric, SampleString};
 use uuid::Uuid;
 
 use serde_json::{Value, Map};
@@ -121,11 +120,7 @@ pub fn get_topt_token(secret: &str, epoch: i64) -> String {
 }
 
 pub fn random_alpha(count: i64) -> String {
-
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(count.try_into().unwrap()).collect()
-
+    Alphanumeric.sample_string(&mut rand::rng(), count.try_into().unwrap())
 }
 
 

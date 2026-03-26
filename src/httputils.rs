@@ -372,8 +372,9 @@ pub fn cleanup_html(stringin: &str) -> String {
 pub enum HttpEncoding {
     Brotli = 0,
     Gzip = 1,
-    Deflate = 2,  
-    Identity = 3,
+    Deflate = 2, 
+    Zstandard = 3,
+    Identity = 4,
 }
 
 
@@ -383,6 +384,7 @@ impl From<u8> for HttpEncoding {
             0 => Self::Brotli,
             1 => Self::Gzip,
             2 => Self::Deflate,
+            3 => Self::Zstandard,
             _ => Self::Identity
         }
     }
@@ -395,7 +397,7 @@ impl Into<u8> for HttpEncoding {
 }
 
 
-const SUPPORTED_ENCODINGS: &[&str] = &["br", "gzip", "deflate", "identity"];
+const SUPPORTED_ENCODINGS: &[&str] = &["br", "gzip", "deflate", "zstd", "identity"];
 
 
 impl EnumType for HttpEncoding {
@@ -418,6 +420,7 @@ impl From<&str> for HttpEncoding {
             "br" => HttpEncoding::Brotli,
             "gzip" => HttpEncoding::Gzip,
             "deflate" => HttpEncoding::Deflate,
+            "zstd" => HttpEncoding::Zstandard,
             _ => HttpEncoding::Identity
         }
     }
@@ -450,6 +453,12 @@ impl HttpEncoding {
                     _writer.write_all(body).unwrap();
                 }
                 _output.to_vec()
+            }
+
+            Self::Zstandard => {
+                let mut _encoder = zstd::stream::Encoder::new(Vec::new(), 0).unwrap();
+                _encoder.write_all(body).unwrap();
+                _encoder.finish().unwrap()
             }
 
             _ => body.to_vec()
