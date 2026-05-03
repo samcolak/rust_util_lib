@@ -147,6 +147,8 @@ pub fn fetch_string(element: &serde_json::Value, key: &str, default: &str) -> Op
         Some(e) => {
             if e.is_string() {
                 e.as_str().expect("").to_string()
+            } else if e.is_number() {
+                e.to_string()
             } else {
                 default.to_string()
             }
