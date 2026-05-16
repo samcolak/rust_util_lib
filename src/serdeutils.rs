@@ -4,17 +4,66 @@ use serde_json::Value;
 
 pub struct ParseValue<'a, T>(pub &'a Value, pub &'a str, pub T);
 
-impl <'a> From<ParseValue<'a, u64>> for u64 {
 
-    fn from(src: ParseValue<u64>) -> u64 {
+impl <'a> From<ParseValue<'a, i8>> for i8 {
+
+    fn from(src: ParseValue<i8>) -> i8 {
         match src.0.get(src.1) {
             None => src.2,
             Some(e) => {
                 if let Some(number) = e.as_u64() {
-                    number
+                    number as i8
                 } else {            
                     match e.as_str() {
-                        Some(num) => match num.parse::<u64>() {
+                        Some(num) => match num.parse::<i8>() {
+                            Ok(parsed) => parsed,
+                            Err(_) => src.2,
+                        },
+                        _ => src.2,
+                    }                        
+                }
+            }
+        }
+    }
+
+}
+
+
+impl <'a> From<ParseValue<'a, u8>> for u8 {
+
+    fn from(src: ParseValue<u8>) -> u8 {
+        match src.0.get(src.1) {
+            None => src.2,
+            Some(e) => {
+                if let Some(number) = e.as_u64() {
+                    number as u8
+                } else {            
+                    match e.as_str() {
+                        Some(num) => match num.parse::<u8>() {
+                            Ok(parsed) => parsed,
+                            Err(_) => src.2,
+                        },
+                        _ => src.2,
+                    }                        
+                }
+            }
+        }
+    }
+
+}
+
+
+impl <'a> From<ParseValue<'a, i32>> for i32 {
+
+    fn from(src: ParseValue<i32>) -> i32 {
+        match src.0.get(src.1) {
+            None => src.2,
+            Some(e) => {
+                if let Some(number) = e.as_i64() {
+                    number as i32
+                } else {            
+                    match e.as_str() {
+                        Some(num) => match num.parse::<i32>() {
                             Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
@@ -39,6 +88,30 @@ impl <'a> From<ParseValue<'a, u32>> for u32 {
                 } else {            
                     match e.as_str() {
                         Some(num) => match num.parse::<u32>() {
+                            Ok(parsed) => parsed,
+                            Err(_) => src.2,
+                        },
+                        _ => src.2,
+                    }                        
+                }
+            }
+        }
+    }
+
+}
+
+
+impl <'a> From<ParseValue<'a, u64>> for u64 {
+
+    fn from(src: ParseValue<u64>) -> u64 {
+        match src.0.get(src.1) {
+            None => src.2,
+            Some(e) => {
+                if let Some(number) = e.as_u64() {
+                    number
+                } else {            
+                    match e.as_str() {
+                        Some(num) => match num.parse::<u64>() {
                             Ok(parsed) => parsed,
                             Err(_) => src.2,
                         },
@@ -163,6 +236,11 @@ pub fn fetch_string(element: &serde_json::Value, key: &str, default: &str) -> Op
 }   
 
 
+pub fn parse_i32(element: &serde_json::Value, key: &'static str, default: i32) -> i32 {
+    i32::from(ParseValue(element, key, default))
+}
+
+
 pub fn parse_u32(element: &serde_json::Value, key: &'static str, default: u32) -> u32 {
     u32::from(ParseValue(element, key, default))
 }
@@ -175,6 +253,16 @@ pub fn parse_u64(element: &serde_json::Value, key: &'static str, default: u64) -
 
 pub fn parse_i64(element: &serde_json::Value, key: &'static str, default: i64) -> i64 {
     i64::from(ParseValue(element, key, default))
+}
+
+
+pub fn parse_u8(element: &serde_json::Value, key: &'static str, default: u8) -> u8 {
+    u8::from(ParseValue(element, key, default))
+}
+
+
+pub fn parse_i8(element: &serde_json::Value, key: &'static str, default: i8) -> i8 {
+    i8::from(ParseValue(element, key, default))
 }
 
 
